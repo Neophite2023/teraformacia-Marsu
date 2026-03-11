@@ -1,0 +1,58 @@
+<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="towerMetal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#475569" />
+      <stop offset="50%" style="stop-color:#1e293b" />
+      <stop offset="100%" style="stop-color:#0f172a" />
+    </linearGradient>
+    <filter id="muzzleFlash" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Masívna základňa (Base) -->
+  <path d="M20 80L50 95L80 80V40L50 25L20 40V80Z" fill="url(#towerMetal)" stroke="#0f172a" stroke-width="2"/>
+  <path d="M25 75L50 88L75 75V45L50 32L25 45V75Z" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+
+  <!-- Výstražné pruhy -->
+  <g opacity="0.4">
+    <path d="M30 85L38 89M62 89L70 85" stroke="#fbbf24" stroke-width="3"/>
+  </g>
+
+  <!-- Rotačný kĺb -->
+  <circle cx="50" cy="50" r="18" fill="#1e293b" stroke="#475569" stroke-width="1.5"/>
+  <circle cx="50" cy="50" r="12" fill="#0f172a"/>
+
+  <!-- Hlavne kanónov (Barrels) -->
+  <g id="turret">
+    <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="10s" repeatCount="indefinite" />
+    
+    <!-- Telo veže -->
+    <rect x="35" y="38" width="30" height="24" rx="4" fill="#1e293b" stroke="#475569" stroke-width="1.5"/>
+    
+    <!-- Horná hlaveň -->
+    <rect x="62" y="42" width="22" height="6" rx="1" fill="#64748b" stroke="#1e293b">
+      <animate attributeName="x" values="62;58;62" dur="0.15s" repeatCount="indefinite" begin="click" />
+    </rect>
+    
+    <!-- Dolná hlaveň -->
+    <rect x="62" y="52" width="22" height="6" rx="1" fill="#64748b" stroke="#1e293b">
+      <animate attributeName="x" values="62;58;62" dur="0.15s" repeatCount="indefinite" begin="click" />
+    </rect>
+
+    <!-- Chladiace rebrá -->
+    <rect x="64" y="41" width="4" height="8" fill="#334155"/>
+    <rect x="64" y="51" width="4" height="8" fill="#334155"/>
+
+    <!-- Zameriavač / Cockpit -->
+    <rect x="42" y="44" width="8" height="12" rx="1" fill="#0ea5e9" opacity="0.7">
+      <animate attributeName="opacity" values="0.4;0.9;0.4" dur="2s" repeatCount="indefinite" />
+    </rect>
+  </g>
+
+  <!-- Status LED -->
+  <circle cx="35" cy="40" r="2" fill="#ef4444">
+    <animate attributeName="opacity" values="1;0.2;1" dur="1s" repeatCount="indefinite" />
+  </circle>
+</svg>

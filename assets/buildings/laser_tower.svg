@@ -1,0 +1,60 @@
+
+<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Filter pre intenzívnu hi-tech žiaru (Bloom) -->
+    <filter id="lensGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    
+    <!-- Metalický prechod pre konštrukciu -->
+    <linearGradient id="laserTowerMetal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#475569" />
+      <stop offset="50%" style="stop-color:#1e293b" />
+      <stop offset="100%" style="stop-color:#0f172a" />
+    </linearGradient>
+
+    <!-- Energetický prechod pre šošovku -->
+    <radialGradient id="lensCoreGrad" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+      <stop offset="0%" style="stop-color:#ffffff" />
+      <stop offset="30%" style="stop-color:#38bdf8" />
+      <stop offset="100%" style="stop-color:#0284c7" />
+    </radialGradient>
+  </defs>
+
+  <!-- Masívna hexagonálna základňa s industriálnym detailom -->
+  <path d="M15 75L50 95L85 75V35L50 15L15 35V75Z" fill="url(#laserTowerMetal)" stroke="#0f172a" stroke-width="2"/>
+  <path d="M20 72L50 88L80 72V38L50 22L20 38V72Z" fill="#0f172a" stroke="#334155" stroke-width="1" opacity="0.5"/>
+  
+  <!-- Horná platforma s energetickými rozvodmi -->
+  <path d="M25 65L50 80L75 65V40L50 25L25 40V65Z" fill="#0f172a" stroke="#38bdf8" stroke-width="1.5"/>
+  <circle cx="50" cy="52" r="10" fill="#1e293b" stroke="#38bdf8" stroke-width="0.5" stroke-dasharray="2 2"/>
+
+  <!-- Otočná hlavica (Turret) -->
+  <g transform="translate(50, 48)">
+    <!-- Telo Turretu -->
+    <rect x="-20" y="-18" width="40" height="36" rx="4" fill="#1e293b" stroke="#38bdf8" stroke-width="1.2"/>
+    <rect x="-15" y="-22" width="10" height="4" fill="#334155"/>
+    <rect x="5" y="-22" width="10" height="4" fill="#334155"/>
+    
+    <!-- Optická hlaveň s chladiacimi rebrami -->
+    <rect x="0" y="-10" width="42" height="20" rx="2" fill="#0f172a" stroke="#38bdf8" stroke-width="1.5"/>
+    <g stroke="#334155" stroke-width="1">
+      <line x1="10" y1="-12" x2="10" y2="12" />
+      <line x1="18" y1="-12" x2="18" y2="12" />
+      <line x1="26" y1="-12" x2="26" y2="12" />
+    </g>
+    
+    <!-- Optické jadro bolo úplne odstránené na žiadosť používateľa. -->
+  </g>
+
+  <!-- Status LED s pulzovaním podľa synchronizácie optiky -->
+  <circle cx="25" cy="30" r="3" fill="#38bdf8" filter="url(#lensGlow)">
+    <animate attributeName="opacity" values="1;0.2;1" dur="2s" repeatCount="indefinite" />
+    <animate attributeName="r" values="2.5;3.5;2.5" dur="2s" repeatCount="indefinite" />
+  </circle>
+
+  <!-- Dekoračné hi-tech linky -->
+  <path d="M75 30 L85 20" stroke="#38bdf8" stroke-width="0.5" opacity="0.3" />
+  <circle cx="85" cy="20" r="1.5" fill="#38bdf8" opacity="0.5" />
+</svg>

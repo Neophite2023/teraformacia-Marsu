@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <title>Náhľad: Detailný Heavy Alien (Zelený)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #020617;
+            color: white;
+            font-family: 'JetBrains Mono', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        h1 { font-family: 'Orbitron', sans-serif; color: #10b981; letter-spacing: 2px; margin-bottom: 30px; }
+        
+        .preview-box {
+            background: radial-gradient(circle, #064e3b33 0%, transparent 70%);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 30px;
+            padding: 60px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        }
+
+        /* --- ANIMÁCIE --- */
+        @keyframes wiggling { 0%, 100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
+        @keyframes leg-kmit { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }
+        @keyframes glow-pulse { 0%, 100% { opacity: 0.4; filter: blur(2px); } 50% { opacity: 1; filter: blur(5px); } }
+
+        .alien-root {
+            filter: drop-shadow(0 0 20px rgba(16, 185, 129, 0.2));
+        }
+
+        .segment { transition: 0.3s; }
+        .spike { fill: #022c22; stroke: #064e3b; stroke-width: 1; }
+        .vein { stroke: #34d399; stroke-width: 0.5; fill: none; opacity: 0.6; }
+        .eye-main { fill: #fff; filter: drop-shadow(0 0 5px #10b981); }
+
+    </style>
+</head>
+<body>
+
+    <h1>Heavy Alien: Detailný Prototyp</h1>
+
+    <div class="preview-box">
+        <svg width="400" height="400" viewBox="0 0 200 200" class="alien-root">
+            
+            <!-- NOHY (Detailnejšie, 6 ks) -->
+            <g class="legs" stroke="#064e3b" stroke-width="3" fill="none" stroke-linecap="round">
+                <g style="animation: leg-kmit 0.4s infinite;">
+                    <path d="M80,100 L50,130 L30,160" />
+                    <path d="M120,100 L150,130 L170,160" />
+                </g>
+                <g style="animation: leg-kmit 0.4s infinite reverse; animation-delay: 0.1s;">
+                    <path d="M85,115 L55,145 L40,175" />
+                    <path d="M115,115 L145,145 L160,175" />
+                </g>
+                <g style="animation: leg-kmit 0.4s infinite; animation-delay: 0.2s;">
+                    <path d="M90,130 L65,160 L55,190" />
+                    <path d="M110,130 L135,160 L145,190" />
+                </g>
+            </g>
+
+            <!-- TELO (Vlnenie) -->
+            <g style="animation: wiggling 2s ease-in-out infinite; transform-origin: 100px 100px;">
+                
+                <!-- SEGMENT 4 (Koniec) -->
+                <ellipse cx="100" cy="165" rx="12" ry="10" fill="#064e3b" />
+                <path d="M90,160 L80,175 M110,160 L120,175" stroke="#022c22" stroke-width="2" /> <!-- Ostne -->
+
+                <!-- SEGMENT 3 -->
+                <ellipse cx="100" cy="145" rx="18" ry="15" fill="#065f46" />
+                <path d="M85,140 L75,150 M115,140 L125,150" stroke="#022c22" stroke-width="3" />
+                <path d="M90,145 Q100,135 110,145" class="vein" style="animation: glow-pulse 3s infinite;" />
+
+                <!-- SEGMENT 2 -->
+                <ellipse cx="100" cy="120" rx="24" ry="20" fill="#064e3b" />
+                <circle cx="100" cy="120" r="4" fill="#10b981" style="animation: glow-pulse 2s infinite;" /> <!-- Energetické jadro -->
+                <path d="M80,115 L70,125 M120,115 L130,125" stroke="#022c22" stroke-width="4" />
+
+                <!-- SEGMENT 1 (Hruď) -->
+                <ellipse cx="100" cy="90" rx="30" ry="25" fill="#022c22" stroke="#065f46" stroke-width="2" />
+                <!-- Pancierový plát -->
+                <path d="M80,80 Q100,65 120,80 L115,100 Q100,90 85,100 Z" fill="#064e3b" />
+                <path d="M85,85 L115,85" class="vein" />
+
+                <!-- HLAVA -->
+                <g transform="translate(100, 65)">
+                    <ellipse cx="0" cy="0" rx="15" ry="18" fill="#022c22" />
+                    <!-- OČI -->
+                    <circle cx="-6" cy="-5" r="3" class="eye-main" />
+                    <circle cx="6" cy="-5" r="3" class="eye-main" />
+                    <circle cx="0" cy="2" r="2" class="eye-main" style="opacity: 0.6" />
+                    
+                    <!-- MANDIBULY -->
+                    <path d="M-8,10 Q-15,25 -5,35" stroke="#10b981" stroke-width="3" fill="none" />
+                    <path d="M8,10 Q15,25 5,35" stroke="#10b981" stroke-width="3" fill="none" />
+                    
+                    <!-- TYKADLÁ -->
+                    <path d="M-10,-10 L-20,-25" stroke="#065f46" stroke-width="2" />
+                    <path d="M10,-10 L20,-25" stroke="#065f46" stroke-width="2" />
+                </g>
+            </g>
+
+        </svg>
+    </div>
+
+    <p style="margin-top: 20px; color: #94a3b8; font-size: 12px;">
+        Prvky: Pancierové pláty, ostne na bokoch, svietiace jadro, 3 páry kĺbových nôh.
+    </p>
+
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <title>Náhľad: Heavy Alien (Evolúcia Malého)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #020617;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            color: white;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        h1 { font-family: 'Orbitron', sans-serif; color: #10b981; letter-spacing: 4px; margin-bottom: 20px; }
+        .canvas-container {
+            background: radial-gradient(circle, #064e3b22 0%, transparent 70%);
+            padding: 40px;
+            border: 1px solid rgba(16, 185, 129, 0.1);
+            border-radius: 40px;
+        }
+        @keyframes wiggling { 0%, 100% { transform: translateX(-2px); } 50% { transform: translateX(2px); } }
+    </style>
+</head>
+<body>
+
+    <h1>Heavy Alien: Vylepšená Evolúcia</h1>
+
+    <div class="canvas-container">
+        <!-- Simulácia herného canvasu -->
+        <svg width="500" height="300" viewBox="0 0 250 150">
+            <!-- TIEŇ -->
+            <ellipse cx="100" cy="100" rx="60" ry="25" fill="rgba(0,0,0,0.4)" />
+
+            <!-- NOHY (5 párov, animované) -->
+            <g stroke="#064e3b" stroke-width="2.5" fill="none">
+                <path d="M60,80 L40,120"><animateTransform attributeName="transform" type="rotate" values="-5 60 80; 5 60 80; -5 60 80" dur="0.2s" repeatCount="indefinite" /></path>
+                <path d="M80,80 L65,120"><animateTransform attributeName="transform" type="rotate" values="-5 80 80; 5 80 80; -5 80 80" dur="0.2s" repeatCount="indefinite" begin="0.05s" /></path>
+                <path d="M100,80 L90,120"><animateTransform attributeName="transform" type="rotate" values="-5 100 80; 5 100 80; -5 100 80" dur="0.2s" repeatCount="indefinite" begin="0.1s" /></path>
+                <path d="M120,80 L115,120"><animateTransform attributeName="transform" type="rotate" values="-5 120 80; 5 120 80; -5 120 80" dur="0.2s" repeatCount="indefinite" begin="0.15s" /></path>
+                <path d="M140,80 L145,120"><animateTransform attributeName="transform" type="rotate" values="-5 140 80; 5 140 80; -5 140 80" dur="0.2s" repeatCount="indefinite" begin="0.2s" /></path>
+                
+                <!-- Druhá strana -->
+                <path d="M60,80 L40,40"><animateTransform attributeName="transform" type="rotate" values="5 60 80; -5 60 80; 5 60 80" dur="0.2s" repeatCount="indefinite" /></path>
+                <path d="M80,80 L65,40"><animateTransform attributeName="transform" type="rotate" values="5 80 80; -5 80 80; 5 80 80" dur="0.2s" repeatCount="indefinite" begin="0.05s" /></path>
+                <path d="M100,80 L90,40"><animateTransform attributeName="transform" type="rotate" values="5 100 80; -5 100 80; 5 100 80" dur="0.2s" repeatCount="indefinite" begin="0.1s" /></path>
+                <path d="M120,80 L115,40"><animateTransform attributeName="transform" type="rotate" values="5 120 80; -5 120 80; 5 120 80" dur="0.2s" repeatCount="indefinite" begin="0.15s" /></path>
+                <path d="M140,80 L145,40"><animateTransform attributeName="transform" type="rotate" values="5 140 80; -5 140 80; 5 140 80" dur="0.2s" repeatCount="indefinite" begin="0.2s" /></path>
+            </g>
+
+            <!-- TELO (6 segmentov, vlnenie) -->
+            <g style="animation: wiggling 1s infinite alternate-reverse;">
+                <!-- Segmenty od konca -->
+                <ellipse cx="40" cy="80" rx="8" ry="6" fill="#064e3b" />
+                <ellipse cx="55" cy="80" rx="12" ry="10" fill="#065f46" />
+                <ellipse cx="75" cy="80" rx="16" ry="14" fill="#064e3b" />
+                <ellipse cx="100" cy="80" rx="20" ry="18" fill="#065f46" />
+                <ellipse cx="125" cy="80" rx="22" ry="20" fill="#064e3b" />
+                
+                <!-- HLAVNÝ SEGMENT (Hlava/Hruď) -->
+                <ellipse cx="155" cy="80" rx="20" ry="18" fill="#022c22" stroke="#065f46" stroke-width="2" />
+                
+                <!-- SVETIELKA NA SEGMENTOCH (Bioluminiscencia) -->
+                <g fill="#10b981">
+                    <circle cx="55" cy="72" r="1.5"><animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" /></circle>
+                    <circle cx="75" cy="68" r="2"><animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite" /></circle>
+                    <circle cx="100" cy="64" r="2.5"><animate attributeName="opacity" values="0.3;1;0.3" dur="1s" repeatCount="indefinite" /></circle>
+                    <circle cx="125" cy="62" r="2.5"><animate attributeName="opacity" values="0.3;1;0.3" dur="1.2s" repeatCount="indefinite" /></circle>
+                </g>
+
+                <!-- HLAVA DETAILY -->
+                <!-- TYKADLÁ -->
+                <path d="M170,72 L190,60 M170,88 L190,100" stroke="#065f46" stroke-width="3" fill="none" />
+                <!-- MANDIBULY -->
+                <path d="M175,75 Q185,80 175,85" stroke="#10b981" stroke-width="2" fill="none" />
+                
+                <!-- MNOHO OČÍ -->
+                <g fill="#fff">
+                    <circle cx="165" cy="74" r="2" />
+                    <circle cx="165" cy="86" r="2" />
+                    <circle cx="172" cy="70" r="1.5" />
+                    <circle cx="172" cy="90" r="1.5" />
+                    <circle cx="175" cy="80" r="1" />
+                </g>
+            </g>
+        </svg>
+    </div>
+
+    <p style="margin-top: 20px; color: #94a3b8; font-size: 13px; text-align: center; max-width: 500px;">
+        Vizuálna DNA malého aliena, ale zväčšená, pretiahnutá na 6 segmentov, s 10 nohami a pokročilou bioluminiscenciou.
+    </p>
+
+</body>
+</html>

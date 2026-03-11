@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <title>Náhľad: Pôvodný Veľký Alien</title>
+    <style>
+        body {
+            background-color: #1a0a0a; /* Tmavo červené pozadie ako na obrázku */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .alien-container {
+            background: radial-gradient(circle, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 70%);
+            padding: 50px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="alien-container">
+        <svg width="400" height="500" viewBox="0 0 200 250">
+            <!-- HLAVNÉ TELO / BRUŠKO -->
+            <path d="M70,80 Q100,70 130,80 L135,120 Q100,110 65,120 Z" fill="#1e1b4b" /> <!-- Hruď -->
+            
+            <!-- SEGMENTOVANÉ BRUŠKO -->
+            <path d="M85,120 L115,120 L110,150 L90,150 Z" fill="#312e81" />
+            <path d="M90,150 L110,150 L105,180 L95,180 Z" fill="#3730a3" />
+            <path d="M95,180 L105,180 L100,210 Z" fill="#4338ca" />
+            
+            <!-- HEXAGONÁLNE DETAILY NA BRUŠKU -->
+            <circle cx="95" cy="135" r="4" fill="#4338ca" opacity="0.5" />
+            <circle cx="105" cy="155" r="4" fill="#4338ca" opacity="0.5" />
+            <circle cx="100" cy="175" r="4" fill="#4338ca" opacity="0.5" />
+
+            <!-- NOHY (6 ks) -->
+            <g stroke="#1e1b4b" stroke-width="4" fill="none" stroke-linecap="round">
+                <!-- Horný pár -->
+                <path d="M70,90 L40,70 L20,100" />
+                <path d="M130,90 L160,70 L180,100" />
+                <!-- Stredný pár -->
+                <path d="M65,115 L35,130 L20,160" />
+                <path d="M135,115 L165,130 L180,160" />
+                <!-- Dolný pár -->
+                <path d="M85,140 L50,170 L40,210" />
+                <path d="M115,140 L150,170 L160,210" />
+            </g>
+
+            <!-- HLAVA -->
+            <path d="M80,50 Q100,30 120,50 L125,85 Q100,75 75,85 Z" fill="#1e1b4b" />
+            
+            <!-- OČI -->
+            <circle cx="85" cy="60" r="12" fill="#a855f7" />
+            <circle cx="115" cy="60" r="12" fill="#a855f7" />
+            <circle cx="85" cy="60" r="14" fill="#a855f7" opacity="0.3" />
+            <circle cx="115" cy="60" r="14" fill="#a855f7" opacity="0.3" />
+
+            <!-- MANDIBULY (KLEPETÁ) -->
+            <path d="M80,45 L65,25 L85,35 Z" fill="#581c87" />
+            <path d="M120,45 L135,25 L115,35 Z" fill="#581c87" />
+            
+            <!-- ROHY NA HLAVE -->
+            <path d="M95,35 L100,25 L105,35 Z" fill="#1e1b4b" />
+        </svg>
+    </div>
+
+</body>
+</html>

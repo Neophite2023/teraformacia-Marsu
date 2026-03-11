@@ -1,0 +1,61 @@
+{
+  "name": "teraformacia-marsu",
+  "private": true,
+  "version": "0.1.0",
+  "description": "A Mars terraforming RTS game",
+  "author": "Neophite2023",
+  "main": "electron-main.cjs",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "lint": "eslint . --report-unused-disable-directives --max-warnings 20",
+    "test": "vitest run",
+    "build": "vite build",
+    "preview": "vite preview",
+    "build:exe": "npm run build && electron-builder"
+  },
+  "dependencies": {
+    "lucide-react": "^0.562.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/node": "^22.14.0",
+    "@typescript-eslint/eslint-plugin": "^8.56.1",
+    "@typescript-eslint/parser": "^8.56.1",
+    "@vitejs/plugin-react": "^5.0.0",
+    "@vitest/ui": "^4.0.18",
+    "electron": "^40.6.0",
+    "electron-builder": "^26.8.1",
+    "eslint": "^9.39.3",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.4.0",
+    "jsdom": "^28.1.0",
+    "typescript": "~5.8.2",
+    "typescript-eslint": "^8.56.1",
+    "vite": "^6.2.0",
+    "vitest": "^4.0.18"
+  },
+  "build": {
+    "appId": "sk.teraformacia.marsu",
+    "productName": "Teraformacia Marsu",
+    "files": [
+      "dist/**/*",
+      "electron-main.cjs",
+      "package.json",
+      "icon.png"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "icon.png",
+      "signAndEditExecutable": false
+    }
+  }
+}
