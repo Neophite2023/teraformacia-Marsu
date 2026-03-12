@@ -223,6 +223,25 @@ export const updateHarvesters = (
         }
       });
 
+      // 3. Avoid craters (tankers only, skip target crater)
+      if (h.type === 'TANKER') {
+        const isAtCrater = newState === 'PUMPING_IN' || newState === 'REVERSING_TO_DOCK';
+        if (!isAtCrater) {
+          availableCraters.forEach(cr => {
+            // Skip the crater we are heading to
+            if (targetId === `${cr.x}_${cr.y}`) return;
+            const d = distance(newX, newY, cr.x, cr.y);
+            const avoidR = cr.size + 15; // crater size + small buffer
+            if (d < avoidR && d > 0.1) {
+              const weight = Math.pow(1 - d / avoidR, 2) * 2.0;
+              sepX += ((newX - cr.x) / d) * weight;
+              sepY += ((newY - cr.y) / d) * weight;
+              neighbors++;
+            }
+          });
+        }
+      }
+
       if (neighbors > 0) {
         const sepAngle = Math.atan2(sepY, sepX);
         // Reduced separation in precision states to avoid disrupting docking flow
