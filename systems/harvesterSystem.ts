@@ -23,9 +23,12 @@ const IMPROVED_HARVESTER_SPEED = 50;
 const isBlockedFactory = (
   harvesterGrid: Map<string, Harvester[]>,
   updatedBuildings: Building[],
+  allCraters: EnvFeature[],
   rocket: EnvFeature | undefined,
   playerPos: { x: number; y: number },
   currentHarvesterId: string,
+  harvesterType: Harvester['type'],
+  targetCraterId: string | undefined,
   currentState: Harvester['state'],
   assignedParentId: string,
   currentX: number,
@@ -33,6 +36,18 @@ const isBlockedFactory = (
 ) => (cx: number, cy: number, pId?: string) => {
   if (rocket && distance(rocket.x, rocket.y, cx, cy) < 100) return true;
   if (distance(playerPos.x, playerPos.y, cx, cy) < 60) return true;
+  
+  // Craters obstacle check for Tankers
+  if (harvesterType === 'TANKER') {
+    const isAtCrater = currentState === 'PUMPING_IN' || currentState === 'REVERSING_TO_DOCK';
+    if (!isAtCrater) {
+      for (const cr of allCraters) {
+        if (`${cr.x}_${cr.y}` === targetCraterId) continue;
+        if (distance(cx, cy, cr.x, cr.y) < cr.size + 15) return true;
+      }
+    }
+  }
+
   if (someInRadius<Harvester>(harvesterGrid, cx, cy, 60, qh => {
     if (qh.id === currentHarvesterId) return false;
     const dx = qh.x - cx;
@@ -106,6 +121,7 @@ export const updateHarvesters = (
   prevResources: { id: string; x: number; y: number; type: ResourceType }[],
   reservedResourceIds: Set<string>,
   availableCraters: EnvFeature[],
+  allCraters: EnvFeature[],
   harvesterGrid: Map<string, Harvester[]>,
   rocket: EnvFeature | undefined,
   playerPos: { x: number; y: number },
@@ -173,8 +189,8 @@ export const updateHarvesters = (
 
     // Collision helper
     const isBlocked = isBlockedFactory(
-      harvesterGrid, updatedBuildings, rocket, playerPos,
-      h.id, newState, assignedParentId, newX, newY,
+      harvesterGrid, updatedBuildings, allCraters, rocket, playerPos,
+      h.id, h.type, h.targetCraterId, newState, assignedParentId, newX, newY,
     );
 
     // Movement helper
@@ -227,7 +243,7 @@ export const updateHarvesters = (
       if (h.type === 'TANKER') {
         const isAtCrater = newState === 'PUMPING_IN' || newState === 'REVERSING_TO_DOCK';
         if (!isAtCrater) {
-          availableCraters.forEach(cr => {
+          allCraters.forEach(cr => {
             // Skip the crater we are heading to
             if (targetId === `${cr.x}_${cr.y}`) return;
             const d = distance(newX, newY, cr.x, cr.y);

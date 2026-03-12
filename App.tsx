@@ -427,9 +427,10 @@ const App: React.FC = () => {
             const gy = Math.floor(f.y / FOG_GRID_SIZE);
             return !!prev.exploredChunks[`${gx}_${gy}`];
           });
+          const allCraters = prev.envFeatures.filter(f => f.type === 'crater');
           const harvesterResult = updateHarvesters(
             prev.harvesters, buildResult.newHarvesters, buildResult.buildings,
-            prev.discoveredResources, reservedResourceIds, availableCraters,
+            prev.discoveredResources, reservedResourceIds, availableCraters, allCraters,
             harvesterGrid, rocket, { x, y }, prev.exploredChunks, hasPower, dt, isCraterAt,
           );
 

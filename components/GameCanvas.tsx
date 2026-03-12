@@ -1780,13 +1780,14 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ stateRef, onSelectBuildingId })
             ctx.beginPath(); ctx.arc(xPos, bodyH / 2 - 2, wheelRadius, 0, Math.PI * 2); ctx.fill();
             ctx.strokeStyle = '#334155'; ctx.lineWidth = 2; ctx.stroke();
 
-            if (h.state === 'MOVING_TO_CRATER' || h.state === 'RETURNING' || h.state === 'ALIGNING_TO_DOCK' || h.state === 'REVERSING_TO_DOCK') {
-              const treadAngle = (timeSec * 10) % (Math.PI * 2);
-              ctx.save(); ctx.translate(xPos, -bodyH / 2 + 2); ctx.rotate(treadAngle);
-              ctx.fillStyle = '#475569'; ctx.fillRect(-2, -6, 4, 12); ctx.fillRect(-6, -2, 12, 4); ctx.restore();
-              ctx.save(); ctx.translate(xPos, bodyH / 2 - 2); ctx.rotate(-treadAngle);
-              ctx.fillStyle = '#475569'; ctx.fillRect(-2, -6, 4, 12); ctx.fillRect(-6, -2, 12, 4); ctx.restore();
-            }          });
+            const isMoving = h.state === 'MOVING_TO_CRATER' || h.state === 'RETURNING' || h.state === 'ALIGNING_TO_DOCK' || h.state === 'REVERSING_TO_DOCK' || h.state === 'ESCAPING' || h.state === 'WAITING_FOR_DOCK';
+            const treadAngle = isMoving ? (timeSec * 10) % (Math.PI * 2) : 0;
+            
+            ctx.save(); ctx.translate(xPos, -bodyH / 2 + 2); ctx.rotate(treadAngle);
+            ctx.fillStyle = '#475569'; ctx.fillRect(-2, -6, 4, 12); ctx.fillRect(-6, -2, 12, 4); ctx.restore();
+            ctx.save(); ctx.translate(xPos, bodyH / 2 - 2); ctx.rotate(-treadAngle);
+            ctx.fillStyle = '#475569'; ctx.fillRect(-2, -6, 4, 12); ctx.fillRect(-6, -2, 12, 4); ctx.restore();
+          });
 
           // Main Body - Rounded
           ctx.fillStyle = '#475569';
