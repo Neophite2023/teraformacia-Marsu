@@ -66,7 +66,7 @@ export interface Harvester {
   x: number;
   y: number;
   rotation: number;
-  state: 'IDLE' | 'ESCAPING' | 'MOVING_TO_RESOURCE' | 'MOVING_TO_CRATER' | 'ALIGNING_TO_DOCK' | 'REVERSING_TO_DOCK' | 'MINING' | 'PUMPING_IN' | 'RETURNING' | 'DEPOSITING' | 'PUMPING_OUT';
+  state: 'IDLE' | 'ESCAPING' | 'MOVING_TO_RESOURCE' | 'MOVING_TO_CRATER' | 'ALIGNING_TO_DOCK' | 'REVERSING_TO_DOCK' | 'MINING' | 'PUMPING_IN' | 'RETURNING' | 'DEPOSITING' | 'PUMPING_OUT' | 'WAITING_FOR_DOCK';
   targetResourceId?: string;
   targetCraterId?: string;
   targetPos?: { x: number, y: number };

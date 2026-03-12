@@ -3,6 +3,7 @@ import React, { useEffect, useRef } from 'react';
 import type { MutableRefObject } from 'react';
 import { GameState, ResourceType, BuildingType, EnvFeature } from '../types';
 import { MAP_SIZE, TERRAFORM_STAGES, LASER_RANGE, BUILDING_STATS, LASER_COOLDOWN, BUILDING_ZONE_RADIUS, FOG_GRID_SIZE, SYNTHESIZER_TIME, TANKER_CAPACITY } from '../constants';
+import { calculatePowerBalance } from '../systems/buildingSystem';
 import heavyAlienImgUrl from '../assets/velky_alien.png';
 
 const heavyAlienImg = new Image();
@@ -705,16 +706,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ stateRef, onSelectBuildingId })
         if (ti >= TERRAFORM_STAGES[i].ti) stageInfo = TERRAFORM_STAGES[i];
       }
 
-      let totalGen = 0;
-      let totalReq = 0;
-      buildings.forEach(b => {
-        if (b.progress >= 1 && b.health > 0.1) {
-          const bStats = BUILDING_STATS[b.type];
-          if (bStats && bStats.power) totalGen += bStats.power;
-          if (bStats && bStats.powerReq) totalReq += bStats.powerReq;
-        }
-      });
-      const hasPower = totalGen >= totalReq;
+      const { hasPower } = calculatePowerBalance(buildings);
 
       const zoom = CAMERA_ZOOM;
       const viewW = width / zoom;
@@ -1171,8 +1163,17 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ stateRef, onSelectBuildingId })
           ctx.beginPath(); ctx.arc(0, 0, 28, 0, Math.PI * 2); ctx.fill();
           ctx.fillStyle = '#020617'; ctx.strokeStyle = '#92400e'; ctx.lineWidth = 1.5;
           ctx.beginPath(); ctx.roundRect(-12, -28, 24, 56, 6); ctx.fill(); ctx.stroke();
-          const corePulse = isPowered ? (0.75 + Math.sin(timeSec * 10) * 0.25) : 0.2;
-          const coreAlpha = isPowered ? (0.6 + Math.sin(timeSec * 5) * 0.4) : 0.1;
+          
+          // Unique pulse offset for each heater based on ID
+          let idOffset = 0;
+          if (b.id) {
+            for (let i = 0; i < b.id.length; i++) idOffset += b.id.charCodeAt(i) * 1.5;
+          }
+          const buildingLocalTime = timeSec + (idOffset % 100);
+          
+          const corePulse = isPowered ? (0.75 + Math.sin(buildingLocalTime * 10) * 0.25) : 0.2;
+          const coreAlpha = isPowered ? (0.6 + Math.sin(buildingLocalTime * 5) * 0.4) : 0.1;
+
           if (isPowered) {
             ctx.save();
             ctx.shadowBlur = 15; ctx.shadowColor = '#f97316';
@@ -1300,7 +1301,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ stateRef, onSelectBuildingId })
           }
 
           // --- NEW LASER TOWER DESIGN ---
-          const isPowered = hasPower;
+          // (isPowered is already defined at the loop level based on global power and isActive)
 
           // 1. Heavy Base Plate (Solid foundation)
           ctx.fillStyle = '#1e293b'; // Slate-800
@@ -1859,18 +1860,6 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ stateRef, onSelectBuildingId })
           }
           ctx.restore();
 
-          // Pump Nozzle (Front)
-          ctx.fillStyle = '#334155';
-          ctx.beginPath(); ctx.moveTo(bodyW / 2, -6); ctx.lineTo(bodyW / 2 + 10, -3); ctx.lineTo(bodyW / 2 + 10, 3); ctx.lineTo(bodyW / 2, 6); ctx.fill();
-
-          // Hose Connector Details
-          ctx.fillStyle = '#94a3b8';
-          ctx.beginPath(); ctx.arc(bodyW / 2, 0, 3, 0, Math.PI * 2); ctx.fill();
-
-          if (h.state === 'PUMPING_IN' || h.state === 'PUMPING_OUT') {
-            ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 2;
-            ctx.beginPath(); ctx.moveTo(bodyW / 2 + 10, 0); ctx.lineTo(bodyW / 2 + 18, 0); ctx.stroke();
-          }
         }
 
         ctx.restore();
