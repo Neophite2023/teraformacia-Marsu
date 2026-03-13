@@ -69,15 +69,30 @@ export const generateInitialWorld = (): Partial<GameState> => {
     do {
       x = 200 + Math.random() * (MAP_SIZE - 400);
       y = 200 + Math.random() * (MAP_SIZE - 400);
-      size = 35 + Math.random() * 130;
+      
+      // Viac rôznorodé veľkosti (častejšie malé a stredné, zriedkavo obrovské)
+      const sizeRoll = Math.random();
+      if (sizeRoll < 0.6) {
+        size = 35 + Math.random() * 40; // 35 - 75
+      } else if (sizeRoll < 0.9) {
+        size = 75 + Math.random() * 60; // 75 - 135
+      } else {
+        size = 135 + Math.random() * 80; // 135 - 215 (Nové gigantické krátery)
+      }
+
       const distToStart = Math.sqrt(
         Math.pow(x - MAP_SIZE / 2, 2) + Math.pow(y - MAP_SIZE / 2, 2),
       );
+      
       tooClose =
         distToStart < 400 ||
         placedCraters.some(c => {
           const dist = Math.sqrt(Math.pow(c.x - x, 2) + Math.pow(c.y - y, 2));
-          return dist < (c.size + size) * 1.3;
+          // Základná kolízia (nemali by sa veľmi prelínať)
+          const isOverlapping = dist < (c.size + size) * 1.3;
+          // Ak sú blízko seba (menej ako 3-násobok veľkostí), nesmú mať podobnú veľkosť (rozdiel v zóne +-25%)
+          const isTooSimilarNearby = dist < (c.size + size) * 2.8 && Math.abs(c.size - size) < Math.max(c.size, size) * 0.25;
+          return isOverlapping || isTooSimilarNearby;
         });
       attempts++;
     } while (tooClose && attempts < 150);
@@ -85,10 +100,11 @@ export const generateInitialWorld = (): Partial<GameState> => {
     if (!tooClose) {
       // Generate raw vertices
       const rawPoints: { x: number; y: number }[] = [];
-      const vertices = 12 + Math.floor(Math.random() * 8);
+      const vertices = 12 + Math.floor(Math.random() * 10);
       for (let v = 0; v < vertices; v++) {
         const angle = (v / vertices) * Math.PI * 2;
-        const dist = size * (0.85 + Math.random() * 0.3);
+        // Zvýšená asymetria (predtým max 0.15 odchýlka, teraz až 0.25)
+        const dist = size * (0.75 + Math.random() * 0.5);
         rawPoints.push({ x: Math.cos(angle) * dist, y: Math.sin(angle) * dist });
       }
       // Smooth pass – priemer každého bodu s jeho susedmi (2 iterácie)

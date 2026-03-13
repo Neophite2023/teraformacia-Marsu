@@ -4,6 +4,7 @@ import GameCanvas from './components/GameCanvas';
 import UIOverlay from './components/UIOverlay';
 import MainMenu from './components/MainMenu';
 import IntroOverlay from './components/IntroOverlay';
+import LoadingScreen from './components/LoadingScreen';
 import { sounds } from './components/SoundManager';
 import { speech } from './utils/speech';
 import { addResources } from './utils/inventory';
@@ -90,7 +91,10 @@ const UI_SYNC_MS = 1000 / 15;
 const App: React.FC = () => {
   const gameStateRef = useRef<GameState>(INITIAL_STATE);
   const [uiState, setUiState] = useState<GameState>(INITIAL_STATE);
+  const [isLoading, setIsLoading] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
+  const [pendingLoadAction, setPendingLoadAction] = useState<'NEW_GAME' | 'LOAD_GAME' | null>(null);
+  const [pendingSlot, setPendingSlot] = useState<number | null>(null);
   const [hasSave, setHasSave] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const keysPressed = useRef<Set<string>>(new Set());
@@ -124,12 +128,25 @@ const App: React.FC = () => {
       if (localStorage.getItem(`mars_terraforming_save_slot_${i}`)) { found = true; break; }
     }
     setHasSave(found);
-    const initialWorld = generateInitialWorld();
-    gameStateRef.current = { ...gameStateRef.current, ...initialWorld };
-    lastPlayerChunkRef.current = null;
-    lastHarvesterChunksRef.current = new Map();
-    syncUiState(true);
-  }, [syncUiState]);
+  }, []);
+
+  const handleFinishLoading = () => {
+    if (pendingLoadAction === 'NEW_GAME') {
+      const initialWorld = generateInitialWorld();
+      gameStateRef.current = { ...INITIAL_STATE, ...initialWorld };
+      lastPlayerChunkRef.current = null;
+      lastHarvesterChunksRef.current = new Map();
+      syncUiState(true);
+      setGameStarted(true);
+    } else if (pendingLoadAction === 'LOAD_GAME' && pendingSlot !== null) {
+      executeLoadGame(pendingSlot);
+    }
+    
+    setIsLoading(false);
+    setPendingLoadAction(null);
+    setPendingSlot(null);
+    sounds.resume();
+  };
 
   // --- Audio ---
   const handleMuteToggle = (muted: boolean) => {
@@ -143,9 +160,9 @@ const App: React.FC = () => {
   const lastSpokenTextRef = useRef<string>("");
   useEffect(() => {
     if (gameStarted && MISSIONS[uiState.currentMissionIndex]) {
-      if (uiState.currentMissionIndex === 0 && uiState.intro.phase !== 'ROVER_EXITING' && uiState.intro.phase !== 'FINISHED') return;
+      if (uiState.currentMissionIndex === 0 && uiState.intro.phase !== 'FINISHED') return;
       const m = MISSIONS[uiState.currentMissionIndex];
-      const text = `${m.description} ${m.goal}.`;
+      const text = `${m.description}`;
       if (lastSpokenTextRef.current === text) return;
       speech.speak(text, false);
       lastSpokenTextRef.current = text;
@@ -238,6 +255,12 @@ const App: React.FC = () => {
   };
 
   const handleLoadGame = (slotIndex: number) => {
+    setPendingLoadAction('LOAD_GAME');
+    setPendingSlot(slotIndex);
+    setIsLoading(true);
+  };
+
+  const executeLoadGame = (slotIndex: number) => {
     const saved = localStorage.getItem(`mars_terraforming_save_slot_${slotIndex}`);
     if (saved) {
       try {
@@ -541,18 +564,17 @@ const App: React.FC = () => {
   // RENDER
   // =========================================================================
 
+  if (isLoading) {
+    return <LoadingScreen onLoadComplete={handleFinishLoading} />;
+  }
+
   if (!gameStarted) {
     return (
       <MainMenu
         hasSave={hasSave}
         onNewGame={() => {
-          const initialWorld = generateInitialWorld();
-          gameStateRef.current = { ...INITIAL_STATE, ...initialWorld };
-          lastPlayerChunkRef.current = null;
-          lastHarvesterChunksRef.current = new Map();
-          syncUiState(true);
-          setGameStarted(true);
-          sounds.resume();
+          setPendingLoadAction('NEW_GAME');
+          setIsLoading(true);
           sounds.playCollect();
         }}
         onContinue={() => {

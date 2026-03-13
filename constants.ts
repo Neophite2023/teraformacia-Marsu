@@ -126,9 +126,9 @@ export const MISSIONS = [
   {
     id: 'm1',
     title: 'Čierny Štart',
-    description: 'Tvrdo sme dopadli a systémy ledva bežia. Bez energie dlho nevydržíme. Musíme okamžite postaviť solárny panel, ktorý zabezpečí núdzovú prevádzku systémov rakety.',
+    description: 'Tvrdo sme dopadli a systémy ledva bežia. Bez energie ale dlho nevydržíme.',
     goal: 'Aby sme prežili, musíme najprv postaviť Solárny panel, ktorý nám dodá potrebnú elektrinu',
-    successMessage: 'Výborne, začalo sa nabíjanie batérií v rakete! Solárne panely pracujú a systém sa za chvíľku reštartuje. Pamätaj však na to, že každá budova ktorú plánuješ postaviť bude potrebovať energiu z jedného ďalšieho solárneho panelu',
+    successMessage: 'Výborne, začalo sa nabíjanie batérií v rakete! Solárne panely pracujú a systém sa za chvíľku reštartuje. Pamätaj však na to, že každá budova ktorú plánuješ postaviť bude potrebovať ďalšiu energiu.',
     check: (state: any) => state.buildings.some((b: any) => b.type === BuildingType.SOLAR_PANEL && b.progress >= 1)
   },
   {
@@ -144,7 +144,7 @@ export const MISSIONS = [
     title: 'Mráz Prichádza',
     description: 'Materiál máme, nanešťastie v noci tu mrzne. Potrebujeme ohrievač aby zvýšil teplotu o 5 Kelvinov. Postav ho. Mysli na to, že bude treba tiež postaviť ďalší solárny panel, aby nám nedošla energia.',
     goal: 'Zabezpeč teplo postavením Ohrievača a dosiahni úroveň piatich Kelvinov',
-    successMessage: 'Cítiš to teplo? Teplota stúpa a senzory opäť fungujú. Zvládli sme prvú kritickú noc.',
+    successMessage: 'Cítiš to teplo? Teplota stúpa a senzory opäť fungujú. Zvládli sme prvú kritickú fázu teraformácie.',
     check: (state: any) => state.stats.temperature >= 5 && state.buildings.some((b: any) => b.type === BuildingType.HEATER && b.progress >= 1)
   },
   {
@@ -158,8 +158,8 @@ export const MISSIONS = [
   {
     id: 'm5',
     title: 'Signál Stabilizovaný',
-    description: 'Votrelci sú preč. Teraz musíme stabilizovať planétu. Jeden ohrievač nestačí.',
-    goal: 'Postav ďalšie panely a ohrievače tak, aby sme dosiahli teplotu 10 Kelvinov a atmosferický tlak 20 Pascalov',
+    description: 'Votrelci sú preč. Teraz musíme stabilizovať planétu. Jeden ohrievač nestačí. Bude treba postaviť ďalšie ohrievače a vrtať do hlbín planéty pre získanie plynov, ktoré nám pomôžu zvýšiť tlak v atmosfére.',
+    goal: 'Postav ďalšie panely a ohrievače a vrtáky tak, aby sme dosiahli teplotu 10 Kelvinov a atmosferický tlak 20 Pascalov',
     successMessage: 'To je ono. Základňa beží a planéta sa začína meniť. Prechádzame do ďalšej fázy.',
     check: (state: any) => state.stats.temperature >= 10 && state.stats.pressure >= 20
   },
@@ -176,7 +176,7 @@ export const MISSIONS = [
   {
     id: 'm7',
     title: 'Oceľová Flotila',
-    description: 'Spracovanie beží. Každá Rafinéria má vlastného ťažobného drona - Harvester. Potrebujeme ale čo najrýchlejšie zvýšiť ťažbu.',
+    description: 'Spracovanie beží. Rafinéria má vlastného ťažobného drona - Harvester. Potrebujeme ale čo najrýchlejšie zvýšiť ťažbu.',
     goal: 'Rozšír flotilu: Postav druhú Rafinériu a maj aktívnych 2 Harvesterov',
     successMessage: 'Pozri na ne! Drony pracujú dňom i nocou. Tvoja flotila Harvesterov je veľmi produktívna.',
     check: (state: any) => state.harvesters.filter((h: any) => h.type === 'MINER').length >= 2

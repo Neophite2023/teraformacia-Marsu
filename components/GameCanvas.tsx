@@ -195,7 +195,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ stateRef, onSelectBuildingId })
     ctx.fill();
 
     // 3. INTERNAL TERRACES (Schodovité strmé steny krátera smerom k dnu)
-    const terracesCount = f.size > 50 ? 2 : 1;
+    const terracesCount = (f.size > 50 && seed % 2 !== 0) ? 2 : (f.size > 100 ? 3 : 1);
     let currentInners = f.points;
     
     for (let t = 0; t <= terracesCount; t++) {
@@ -238,9 +238,11 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ stateRef, onSelectBuildingId })
     const floorRadius = f.size * 0.2;
 
     // 4. CENTRAL PEAK (Mnohé veľké marťanské krátery majú vrcholovú horu v strede)
-    if (f.size > 80) {
+    // Nie každý kráter má vrchol, robí krátery unikátnejšími
+    if (f.size > 80 && seed % 3 !== 0) {
         ctx.save();
-        const peakRadius = f.size * 0.15;
+        // Variabilná veľkosť vrcholu
+        const peakRadius = f.size * (0.12 + (seed % 10) * 0.005);
         // Podstava vrchu
         const peakPoints = [];
         for (let i = 0; i < 7; i++) {
