@@ -406,6 +406,26 @@ export const updateHarvesters = (
           } else { newState = 'IDLE'; }
         }
       } else if (newState === 'RETURNING') {
+        // --- Redirection Logic for MINERs ---
+        if (isDockOccupied(assignedParentId, h.id)) {
+          const alternatives = updatedBuildings.filter(b => 
+            b.type === BuildingType.REFINERY && 
+            b.progress >= 1 && 
+            b.health > 0.1 &&
+            !isDockOccupied(b.id, h.id)
+          );
+
+          if (alternatives.length > 0) {
+            const closest = alternatives.reduce((best, curr) => {
+              const d = distance(curr.x, curr.y, newX, newY);
+              return d < best.dist ? { b: curr, dist: d } : best;
+            }, { b: alternatives[0], dist: Infinity }).b;
+            
+            parent = closest;
+            assignedParentId = closest.id;
+          }
+        }
+
         const pr = parent.rotation || 0;
         const aX = parent.x + Math.cos(pr + Math.PI / 2) * 90;
         const aY = parent.y + Math.sin(pr + Math.PI / 2) * 90;
@@ -445,17 +465,36 @@ export const updateHarvesters = (
           }
         }
       } else if (newState === 'WAITING_FOR_DOCK') {
-        // Hold at a staging position near the parent building
-        const pr = parent.rotation || 0;
-        const hashId = h.id.split('-').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-        const angOff = ((hashId % 6) - 3) * 0.3; // angular spread for multiple waiters
-        const waitAngle = pr + Math.PI / 2 + angOff;
-        const waitX = parent.x + Math.cos(waitAngle) * 130;
-        const waitY = parent.y + Math.sin(waitAngle) * 130;
-        move(waitX, waitY, 15);
-        // Check if dock is now free
-        if (!isDockOccupied(assignedParentId, h.id)) {
-          newState = 'RETURNING';
+        // --- Redirection Check while waiting ---
+        const alternatives = updatedBuildings.filter(b => 
+          b.type === BuildingType.REFINERY && 
+          b.progress >= 1 && 
+          b.health > 0.1 &&
+          !isDockOccupied(b.id, h.id)
+        );
+
+        if (alternatives.length > 0) {
+          const closest = alternatives.reduce((best, curr) => {
+            const d = distance(curr.x, curr.y, newX, newY);
+            return d < best.dist ? { b: curr, dist: d } : best;
+          }, { b: alternatives[0], dist: Infinity }).b;
+          
+          parent = closest;
+          assignedParentId = closest.id;
+          newState = 'RETURNING'; // Re-calculate staging point
+        } else {
+          // Hold at a staging position near the current parent building
+          const pr = parent.rotation || 0;
+          const hashId = h.id.split('-').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+          const angOff = ((hashId % 6) - 3) * 0.3; // angular spread for multiple waiters
+          const waitAngle = pr + Math.PI / 2 + angOff;
+          const waitX = parent.x + Math.cos(waitAngle) * 130;
+          const waitY = parent.y + Math.sin(waitAngle) * 130;
+          move(waitX, waitY, 15);
+          // Check if dock is now free
+          if (!isDockOccupied(assignedParentId, h.id)) {
+            newState = 'RETURNING';
+          }
         }
       }
     }

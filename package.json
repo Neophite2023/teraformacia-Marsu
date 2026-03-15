@@ -1,7 +1,7 @@
 {
   "name": "teraformacia-marsu",
   "private": true,
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "A Mars terraforming RTS game",
   "author": "Neophite2023",
   "main": "electron-main.cjs",

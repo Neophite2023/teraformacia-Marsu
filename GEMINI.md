@@ -4,6 +4,7 @@ Tento súbor rozširuje globálne pravidlá a pridáva špecifické príkazy pre
 
 # Vývojové princípy
 - Dodržiavaj TDD (najprv testy, potom kód).
+- Automaticky spúšťaj testy (`!test`) po každom pridaní novej funkcie alebo vlastnosti do kódu hry bez potreby súhlasu používateľa.
 - Vždy komunikuj v slovenčine.
 - Pred opravou chýb vykonaj analýzu príčiny (RCA).
 
