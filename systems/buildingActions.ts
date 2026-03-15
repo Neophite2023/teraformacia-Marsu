@@ -184,21 +184,23 @@ export const applyStartSynthesizerProcess = (prev: GameState): GameState => {
     return prev;
 
   const inv = prev.player.inventory;
-  const canAffordSynthesis =
-    (inv[ResourceType.SILICON] || 0) >= 1 &&
-    (inv[ResourceType.MAGNESIUM] || 0) >= 1 &&
-    (inv[ResourceType.TITANIUM] || 0) >= 1;
+
+  // Dynamický výber dvoch surovín s najvyšším počtom (Si, Mg, Ti)
+  const candidates = [
+    { type: ResourceType.SILICON, amount: inv[ResourceType.SILICON] || 0 },
+    { type: ResourceType.MAGNESIUM, amount: inv[ResourceType.MAGNESIUM] || 0 },
+    { type: ResourceType.TITANIUM, amount: inv[ResourceType.TITANIUM] || 0 },
+  ].sort((a, b) => b.amount - a.amount);
+
+  const canAffordSynthesis = candidates[0].amount >= 1 && candidates[1].amount >= 1;
 
   if (!canAffordSynthesis) return prev;
 
-  sounds.playLaser();
+  const newInventory = { ...inv };
+  newInventory[candidates[0].type] -= 1;
+  newInventory[candidates[1].type] -= 1;
 
-  const newInventory = {
-    ...inv,
-    [ResourceType.SILICON]: inv[ResourceType.SILICON] - 1,
-    [ResourceType.MAGNESIUM]: inv[ResourceType.MAGNESIUM] - 1,
-    [ResourceType.TITANIUM]: inv[ResourceType.TITANIUM] - 1,
-  };
+  sounds.playPlace(); // Or a specific synthesizer sound if available
 
   return {
     ...prev,

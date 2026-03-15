@@ -32,6 +32,8 @@ interface GameCanvasProps {
   onSelectBuildingId?: (id: string | null) => void;
 }
 
+const CAMERA_ZOOM = 1.5; // midway between original (1x) and 2x zoom
+
 const GameCanvas: React.FC<GameCanvasProps> = ({ stateRef, onSelectBuildingId }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const lastPosRef = useRef({ x: 0, y: 0 });
@@ -100,7 +102,6 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ stateRef, onSelectBuildingId })
   const DRAW_RADIUS_SQ = DRAW_RADIUS * DRAW_RADIUS;
   const LOD_NEAR = 900;
   const LOD_NEAR_SQ = LOD_NEAR * LOD_NEAR;
-  const CAMERA_ZOOM = 1.5; // midway between original (1x) and 2x zoom
 
   // Pomocná funkcia na kontrolu viditeľnosti (Fog of War)
   const isChunkExplored = (objX: number, objY: number, chunks: Record<string, boolean>) => {
@@ -655,20 +656,31 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ stateRef, onSelectBuildingId })
         const isActive = b.progress >= 1 && b.health > 0.1;
         if (isActive && Math.random() < 0.15) {
           if (b.type === BuildingType.HEATER) {
-            if (heatParticlesRef.current.length < MAX_HEAT_PARTICLES) {
-              heatParticlesRef.current.push({
-                x: b.x + (Math.random() - 0.5) * 40, y: b.y + (Math.random() - 0.5) * 40,
-                life: 1.0, size: 2 + Math.random() * 3, vx: (Math.random() - 0.5) * 0.4, vy: -0.8 - Math.random() * 1.2
-              });
+            const isLv2Heater = b.level === 2;
+            const particleCount = isLv2Heater ? 3 : 1;
+            for (let pi = 0; pi < particleCount; pi++) {
+              if (heatParticlesRef.current.length < MAX_HEAT_PARTICLES) {
+                const spread = isLv2Heater ? 60 : 40;
+                heatParticlesRef.current.push({
+                  x: b.x + (Math.random() - 0.5) * spread, y: b.y + (Math.random() - 0.5) * spread,
+                  life: isLv2Heater ? 1.4 : 1.0, size: (isLv2Heater ? 3 : 2) + Math.random() * (isLv2Heater ? 4 : 3),
+                  vx: (Math.random() - 0.5) * (isLv2Heater ? 0.6 : 0.4), vy: -(isLv2Heater ? 1.2 : 0.8) - Math.random() * (isLv2Heater ? 1.5 : 1.2)
+                });
+              }
             }
           } else if (b.type === BuildingType.DRILL) {
-            if (dustParticlesRef.current.length < MAX_DUST_PARTICLES) {
-              dustParticlesRef.current.push({
-                x: b.x + (Math.random() - 0.5) * 30, y: b.y + (Math.random() - 0.5) * 30,
-                life: 1.0, size: 4 + Math.random() * 6,
-                vx: (Math.random() - 0.5) * 2, vy: (Math.random() - 0.5) * 2,
-                color: Math.random() > 0.5 ? 'rgba(120, 53, 15, 0.4)' : 'rgba(165, 42, 42, 0.3)'
-              });
+            const isLv2Drill = b.level === 2;
+            const dustCount = isLv2Drill ? 3 : 1;
+            for (let di = 0; di < dustCount; di++) {
+              if (dustParticlesRef.current.length < MAX_DUST_PARTICLES) {
+                const spread = isLv2Drill ? 50 : 30;
+                dustParticlesRef.current.push({
+                  x: b.x + (Math.random() - 0.5) * spread, y: b.y + (Math.random() - 0.5) * spread,
+                  life: isLv2Drill ? 1.4 : 1.0, size: (isLv2Drill ? 5 : 4) + Math.random() * (isLv2Drill ? 8 : 6),
+                  vx: (Math.random() - 0.5) * (isLv2Drill ? 3 : 2), vy: (Math.random() - 0.5) * (isLv2Drill ? 3 : 2),
+                  color: Math.random() > 0.5 ? 'rgba(120, 53, 15, 0.4)' : 'rgba(165, 42, 42, 0.3)'
+                });
+              }
             }
           } else if (b.type === BuildingType.REFINERY && isActive) {
             if (Math.random() < 0.2) {
@@ -1147,24 +1159,58 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ stateRef, onSelectBuildingId })
           }
 
         } else if (b.type === BuildingType.HEATER) {
-          const sides = 6;
-          const radius = 40;
+          const isLv2 = b.level === 2;
+          const sides = isLv2 ? 8 : 6;
+          const radius = isLv2 ? 50 : 40;
           ctx.beginPath();
           for (let i = 0; i <= sides; i++) {
-            const a = (i / sides) * Math.PI * 2 - Math.PI / 6;
+            const a = (i / sides) * Math.PI * 2 - Math.PI / sides;
             ctx.lineTo(Math.cos(a) * radius, Math.sin(a) * radius);
           }
           ctx.closePath();
           const chassisGrad = ctx.createLinearGradient(-radius, -radius, radius, radius);
-          chassisGrad.addColorStop(0, '#475569'); chassisGrad.addColorStop(0.5, '#1e293b'); chassisGrad.addColorStop(1, '#0f172a');
+          if (isLv2) {
+            chassisGrad.addColorStop(0, '#334155'); chassisGrad.addColorStop(0.5, '#1e293b'); chassisGrad.addColorStop(1, '#0c0f1a');
+          } else {
+            chassisGrad.addColorStop(0, '#475569'); chassisGrad.addColorStop(0.5, '#1e293b'); chassisGrad.addColorStop(1, '#0f172a');
+          }
           ctx.fillStyle = chassisGrad; ctx.fill();
-          ctx.strokeStyle = '#64748b'; ctx.lineWidth = 2; ctx.stroke();
+          ctx.strokeStyle = isLv2 ? '#94a3b8' : '#64748b'; ctx.lineWidth = isLv2 ? 2.5 : 2; ctx.stroke();
+          // Outer mounting brackets
           ctx.fillStyle = '#0f172a';
           ctx.fillRect(-radius - 4, -10, 8, 20);
           ctx.fillRect(radius - 4, -10, 8, 20);
-          ctx.beginPath(); ctx.arc(0, 0, 28, 0, Math.PI * 2); ctx.fill();
-          ctx.fillStyle = '#020617'; ctx.strokeStyle = '#92400e'; ctx.lineWidth = 1.5;
-          ctx.beginPath(); ctx.roundRect(-12, -28, 24, 56, 6); ctx.fill(); ctx.stroke();
+          if (isLv2) {
+            ctx.fillRect(-10, -radius - 4, 20, 8);
+            ctx.fillRect(-10, radius - 4, 20, 8);
+          }
+          // Inner ring
+          ctx.beginPath(); ctx.arc(0, 0, isLv2 ? 35 : 28, 0, Math.PI * 2); ctx.fill();
+          // Core housing
+          ctx.fillStyle = '#020617'; ctx.strokeStyle = isLv2 ? '#b45309' : '#92400e'; ctx.lineWidth = isLv2 ? 2 : 1.5;
+          if (isLv2) {
+            ctx.beginPath(); ctx.roundRect(-16, -32, 32, 64, 8); ctx.fill(); ctx.stroke();
+          } else {
+            ctx.beginPath(); ctx.roundRect(-12, -28, 24, 56, 6); ctx.fill(); ctx.stroke();
+          }
+
+          // Lv2: Three radial exhaust vents around the core
+          if (isLv2) {
+            for (let v = 0; v < 3; v++) {
+              const ventAngle = (v / 3) * Math.PI * 2 + Math.PI / 6;
+              ctx.save();
+              ctx.rotate(ventAngle);
+              ctx.fillStyle = '#1e293b';
+              ctx.beginPath(); ctx.roundRect(20, -5, 18, 10, 3); ctx.fill();
+              ctx.strokeStyle = '#b45309'; ctx.lineWidth = 1;
+              ctx.stroke();
+              if (isPowered) {
+                ctx.fillStyle = `rgba(249, 115, 22, ${0.3 + Math.sin(timeSec * 6 + v * 2) * 0.2})`;
+                ctx.beginPath(); ctx.roundRect(22, -3, 14, 6, 2); ctx.fill();
+              }
+              ctx.restore();
+            }
+          }
           
           // Unique pulse offset for each heater based on ID
           let idOffset = 0;
@@ -1178,79 +1224,167 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ stateRef, onSelectBuildingId })
 
           if (isPowered) {
             ctx.save();
-            ctx.shadowBlur = 15; ctx.shadowColor = '#f97316';
-            ctx.fillStyle = `rgba(249, 115, 22, ${coreAlpha})`;
-            ctx.beginPath(); ctx.roundRect(-8, -24 * corePulse, 16, 48 * corePulse, 4); ctx.fill();
+            ctx.shadowBlur = isLv2 ? 30 : 15; ctx.shadowColor = isLv2 ? '#ea580c' : '#f97316';
+            ctx.fillStyle = isLv2 ? `rgba(234, 88, 12, ${coreAlpha})` : `rgba(249, 115, 22, ${coreAlpha})`;
+            const coreW = isLv2 ? 12 : 8;
+            const coreH = isLv2 ? 28 : 24;
+            ctx.beginPath(); ctx.roundRect(-coreW, -coreH * corePulse, coreW * 2, coreH * 2 * corePulse, 4); ctx.fill();
+            // Lv2: secondary glow layer
+            if (isLv2) {
+              ctx.shadowBlur = 50; ctx.shadowColor = '#f97316';
+              ctx.fillStyle = `rgba(251, 146, 60, ${coreAlpha * 0.3})`;
+              ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI * 2); ctx.fill();
+            }
             ctx.restore();
-            for (let i = 0; i < 3; i++) {
-              const waveY = -35 - ((timeSec * 40 + i * 25) % 60);
+            // Heat waves
+            const waveCount = isLv2 ? 5 : 3;
+            const waveWidth = isLv2 ? 24 : 18;
+            for (let i = 0; i < waveCount; i++) {
+              const waveY = -35 - ((buildingLocalTime * 40 + i * (isLv2 ? 18 : 25)) % 60);
               const waveAlpha = 1 - (Math.abs(waveY + 35) / 60);
-              ctx.strokeStyle = `rgba(251, 191, 36, ${waveAlpha * 0.4})`;
-              ctx.lineWidth = 2;
-              ctx.beginPath(); ctx.moveTo(-18, waveY); ctx.quadraticCurveTo(0, waveY - 10, 18, waveY); ctx.stroke();
+              ctx.strokeStyle = `rgba(251, 191, 36, ${waveAlpha * (isLv2 ? 0.6 : 0.4)})`;
+              ctx.lineWidth = isLv2 ? 2.5 : 2;
+              ctx.beginPath(); ctx.moveTo(-waveWidth, waveY); ctx.quadraticCurveTo(0, waveY - 10, waveWidth, waveY); ctx.stroke();
             }
           } else {
             ctx.fillStyle = '#451a03';
-            ctx.beginPath(); ctx.roundRect(-8, -10, 16, 20, 2); ctx.fill();
+            const offW = isLv2 ? 12 : 8;
+            ctx.beginPath(); ctx.roundRect(-offW, -10, offW * 2, 20, 2); ctx.fill();
           }
           ctx.strokeStyle = isPowered ? 'rgba(251, 191, 36, 0.4)' : 'rgba(146, 64, 14, 0.2)';
           ctx.lineWidth = 1;
-          for (let j = -2; j <= 2; j++) {
-            ctx.beginPath(); ctx.moveTo(-10, j * 10); ctx.lineTo(10, j * 10); ctx.stroke();
+          const grillRange = isLv2 ? 3 : 2;
+          for (let j = -grillRange; j <= grillRange; j++) {
+            ctx.beginPath(); ctx.moveTo(isLv2 ? -14 : -10, j * (isLv2 ? 8 : 10)); ctx.lineTo(isLv2 ? 14 : 10, j * (isLv2 ? 8 : 10)); ctx.stroke();
           }
-          ctx.fillStyle = '#0f172a'; ctx.beginPath(); ctx.roundRect(-16, 22, 32, 10, 2); ctx.fill();
+          // Control panel
+          const panelW = isLv2 ? 40 : 32;
+          ctx.fillStyle = '#0f172a'; ctx.beginPath(); ctx.roundRect(-panelW / 2, 22, panelW, 10, 2); ctx.fill();
           const blink = Math.sin(timeSec * 4) > 0;
           ctx.fillStyle = blink ? '#ef4444' : '#451a03'; ctx.beginPath(); ctx.arc(-10, 27, 1.5, 0, Math.PI * 2); ctx.fill();
           ctx.fillStyle = '#22c55e'; ctx.beginPath(); ctx.arc(0, 27, 1.5, 0, Math.PI * 2); ctx.fill();
           ctx.fillStyle = isPowered ? '#38bdf8' : '#0369a1'; ctx.beginPath(); ctx.arc(10, 27, 1.5, 0, Math.PI * 2); ctx.fill();
+          // Lv2: additional amber status LEDs
+          if (isLv2) {
+            const amberPulse = 0.5 + Math.sin(timeSec * 3) * 0.5;
+            ctx.fillStyle = isPowered ? `rgba(245, 158, 11, ${amberPulse})` : '#451a03';
+            ctx.beginPath(); ctx.arc(-16, 27, 1.5, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(16, 27, 1.5, 0, Math.PI * 2); ctx.fill();
+          }
 
         } else if (b.type === BuildingType.DRILL) {
-          const vibration = isPowered ? Math.sin(timeSec * 60) * 1.5 : 0;
+          const isLv2 = b.level === 2;
+          const vibration = isPowered ? Math.sin(timeSec * 60) * (isLv2 ? 1.5 : 1.5) : 0;
           ctx.translate(vibration, 0);
-          const baseWidth = 80; const baseHeight = 40;
+          const baseWidth = isLv2 ? 100 : 80; const baseHeight = isLv2 ? 46 : 40;
           const foundationGrad = ctx.createLinearGradient(-baseWidth / 2, 0, baseWidth / 2, baseHeight);
-          foundationGrad.addColorStop(0, '#475569'); foundationGrad.addColorStop(1, '#0f172a');
+          if (isLv2) {
+            foundationGrad.addColorStop(0, '#334155'); foundationGrad.addColorStop(1, '#0c0f1a');
+          } else {
+            foundationGrad.addColorStop(0, '#475569'); foundationGrad.addColorStop(1, '#0f172a');
+          }
           ctx.fillStyle = foundationGrad; ctx.beginPath(); ctx.roundRect(-baseWidth / 2, 0, baseWidth, baseHeight, 4); ctx.fill();
-          ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 2; ctx.stroke();
-          ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 3; ctx.globalAlpha = 0.4;
-          for (let i = -30; i < 40; i += 15) { ctx.beginPath(); ctx.moveTo(i, 2); ctx.lineTo(i + 8, 12); ctx.stroke(); }
+          ctx.strokeStyle = isLv2 ? '#94a3b8' : '#1e293b'; ctx.lineWidth = isLv2 ? 2.5 : 2; ctx.stroke();
+          // Hazard stripes
+          ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = isLv2 ? 3.5 : 3; ctx.globalAlpha = isLv2 ? 0.5 : 0.4;
+          const stripeStart = isLv2 ? -40 : -30;
+          const stripeEnd = isLv2 ? 50 : 40;
+          for (let i = stripeStart; i < stripeEnd; i += 15) { ctx.beginPath(); ctx.moveTo(i, 2); ctx.lineTo(i + 8, 12); ctx.stroke(); }
           ctx.globalAlpha = 1;
+          // Pistons
           const pistonExt = isPowered ? (Math.sin(timeSec * 5) * 5 + 5) : 2;
           const drawPiston = (xPos: number) => {
             ctx.fillStyle = '#1e293b'; ctx.fillRect(xPos - 5, -10, 10, 25);
             ctx.fillStyle = '#94a3b8'; ctx.fillRect(xPos - 2, -10 - pistonExt, 4, 15);
             ctx.strokeStyle = '#0f172a'; ctx.strokeRect(xPos - 5, -10, 10, 25);
           };
-          drawPiston(-25); drawPiston(25);
-          ctx.fillStyle = '#1e293b'; ctx.beginPath(); ctx.roundRect(-18, -45, 36, 45, 2); ctx.fill();
-          ctx.strokeStyle = '#475569'; ctx.lineWidth = 1.5; ctx.stroke();
-          ctx.fillStyle = '#020617'; ctx.fillRect(-12, -40, 24, 10);
+          if (isLv2) {
+            drawPiston(-38); drawPiston(-14); drawPiston(14); drawPiston(38);
+          } else {
+            drawPiston(-25); drawPiston(25);
+          }
+          // Tower
+          const towerW = isLv2 ? 44 : 36;
+          const towerH = isLv2 ? 52 : 45;
+          ctx.fillStyle = '#1e293b'; ctx.beginPath(); ctx.roundRect(-towerW / 2, -towerH, towerW, towerH, 2); ctx.fill();
+          ctx.strokeStyle = isLv2 ? '#64748b' : '#475569'; ctx.lineWidth = 1.5; ctx.stroke();
+          // Lv2: reinforcement plates on tower
+          if (isLv2) {
+            ctx.strokeStyle = '#475569'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(-towerW / 2, -towerH * 0.66); ctx.lineTo(towerW / 2, -towerH * 0.66); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(-towerW / 2, -towerH * 0.33); ctx.lineTo(towerW / 2, -towerH * 0.33); ctx.stroke();
+          }
+          // LED display
+          const ledW = isLv2 ? 30 : 24;
+          ctx.fillStyle = '#020617'; ctx.fillRect(-ledW / 2, -towerH + 5, ledW, isLv2 ? 14 : 10);
           if (isPowered) {
             const ledPulse = 0.5 + Math.sin(timeSec * 4) * 0.5;
             ctx.fillStyle = `rgba(56, 189, 248, ${ledPulse})`;
-            ctx.fillRect(-10, -38, 20 * (0.4 + Math.sin(timeSec) * 0.2), 6);
+            ctx.fillRect(-ledW / 2 + 2, -towerH + 7, (ledW - 4) * (0.4 + Math.sin(timeSec) * 0.2), isLv2 ? 10 : 6);
+            // Lv2: extra LED bar
+            if (isLv2) {
+              const ledPulse2 = 0.5 + Math.sin(timeSec * 6 + 1) * 0.5;
+              ctx.fillStyle = `rgba(34, 197, 94, ${ledPulse2})`;
+              ctx.fillRect(-ledW / 2 + 2, -towerH + 14, (ledW - 4) * (0.3 + Math.cos(timeSec * 1.5) * 0.2), 3);
+            }
           }
+          // Drill cone(s)
           ctx.save();
-          ctx.rotate(Math.sin(timeSec * 80) * 0.02);
-          const coneH = 35; const coneW = 28;
-          ctx.beginPath(); ctx.moveTo(-coneW / 2, 0); ctx.lineTo(coneW / 2, 0); ctx.lineTo(0, coneH); ctx.closePath();
-          const drillGrad = ctx.createLinearGradient(-coneW / 2, 0, coneW / 2, 0);
-          drillGrad.addColorStop(0, '#94a3b8'); drillGrad.addColorStop(0.5, '#cbd5e1'); drillGrad.addColorStop(1, '#475569');
-          ctx.fillStyle = drillGrad; ctx.fill();
-          if (isPowered) {
-            ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 2;
-            const threadOffset = (timeSec * 60) % 15;
-            for (let t = 0; t < coneH; t += 8) {
-              const y = t + (threadOffset % 8);
-              if (y < coneH) {
-                const wAtY = coneW * (1 - y / coneH);
-                ctx.beginPath(); ctx.moveTo(-wAtY / 2, y); ctx.lineTo(wAtY / 2, y); ctx.stroke();
+          ctx.rotate(Math.sin(timeSec * 80) * (isLv2 ? 0.03 : 0.02));
+          if (isLv2) {
+            // Dual drill cones
+            const coneH = 38; const coneW = 22;
+            const drawDrillCone = (offsetX: number) => {
+              ctx.save();
+              ctx.translate(offsetX, 0);
+              ctx.beginPath(); ctx.moveTo(-coneW / 2, 0); ctx.lineTo(coneW / 2, 0); ctx.lineTo(0, coneH); ctx.closePath();
+              const drillGrad = ctx.createLinearGradient(-coneW / 2, 0, coneW / 2, 0);
+              drillGrad.addColorStop(0, '#94a3b8'); drillGrad.addColorStop(0.5, '#e2e8f0'); drillGrad.addColorStop(1, '#475569');
+              ctx.fillStyle = drillGrad; ctx.fill();
+              if (isPowered) {
+                ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 2;
+                const threadOffset = (timeSec * 60) % 15;
+                for (let t = 0; t < coneH; t += 7) {
+                  const y = t + (threadOffset % 7);
+                  if (y < coneH) {
+                    const wAtY = coneW * (1 - y / coneH);
+                    ctx.beginPath(); ctx.moveTo(-wAtY / 2, y); ctx.lineTo(wAtY / 2, y); ctx.stroke();
+                  }
+                }
+              }
+              ctx.restore();
+            };
+            drawDrillCone(-12);
+            drawDrillCone(12);
+            // Central connecting plate between cones
+            ctx.fillStyle = '#334155';
+            ctx.beginPath(); ctx.roundRect(-6, -2, 12, 8, 2); ctx.fill();
+          } else {
+            const coneH = 35; const coneW = 28;
+            ctx.beginPath(); ctx.moveTo(-coneW / 2, 0); ctx.lineTo(coneW / 2, 0); ctx.lineTo(0, coneH); ctx.closePath();
+            const drillGrad = ctx.createLinearGradient(-coneW / 2, 0, coneW / 2, 0);
+            drillGrad.addColorStop(0, '#94a3b8'); drillGrad.addColorStop(0.5, '#cbd5e1'); drillGrad.addColorStop(1, '#475569');
+            ctx.fillStyle = drillGrad; ctx.fill();
+            if (isPowered) {
+              ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 2;
+              const threadOffset = (timeSec * 60) % 15;
+              for (let t = 0; t < coneH; t += 8) {
+                const y = t + (threadOffset % 8);
+                if (y < coneH) {
+                  const wAtY = coneW * (1 - y / coneH);
+                  ctx.beginPath(); ctx.moveTo(-wAtY / 2, y); ctx.lineTo(wAtY / 2, y); ctx.stroke();
+                }
               }
             }
           }
           ctx.restore();
-          ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 4; ctx.lineCap = 'round';
-          ctx.beginPath(); ctx.moveTo(18, -25); ctx.quadraticCurveTo(35, -25, 35, 10); ctx.stroke();
+          // Hydraulic arm
+          ctx.strokeStyle = '#0f172a'; ctx.lineWidth = isLv2 ? 5 : 4; ctx.lineCap = 'round';
+          ctx.beginPath(); ctx.moveTo(isLv2 ? 22 : 18, -25); ctx.quadraticCurveTo(isLv2 ? 42 : 35, -25, isLv2 ? 42 : 35, 10); ctx.stroke();
+          // Lv2: second hydraulic arm on the other side
+          if (isLv2) {
+            ctx.beginPath(); ctx.moveTo(-22, -25); ctx.quadraticCurveTo(-42, -25, -42, 10); ctx.stroke();
+          }
 
         } else if (b.type === BuildingType.VEGETUBE) {
           ctx.fillStyle = '#1e293b'; ctx.beginPath(); ctx.roundRect(-55, 12, 110, 18, 5); ctx.fill();

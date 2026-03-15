@@ -95,7 +95,12 @@ const App: React.FC = () => {
   const [gameStarted, setGameStarted] = useState(false);
   const [pendingLoadAction, setPendingLoadAction] = useState<'NEW_GAME' | 'LOAD_GAME' | null>(null);
   const [pendingSlot, setPendingSlot] = useState<number | null>(null);
-  const [hasSave, setHasSave] = useState(false);
+  const [hasSave, setHasSave] = useState(() => {
+    for (let i = 1; i <= 5; i++) {
+      if (localStorage.getItem(`mars_terraforming_save_slot_${i}`)) return true;
+    }
+    return false;
+  });
   const [isMuted, setIsMuted] = useState(false);
   const keysPressed = useRef<Set<string>>(new Set());
   const prevGamepadButtons = useRef<boolean[]>([]);
@@ -122,16 +127,7 @@ const App: React.FC = () => {
   }, [syncUiState]);
 
   // --- Initialization ---
-  useEffect(() => {
-    let found = false;
-    for (let i = 1; i <= 5; i++) {
-      if (localStorage.getItem(`mars_terraforming_save_slot_${i}`)) { found = true; break; }
-    }
-    setHasSave(found);
-  }, []);
-
-  const handleFinishLoading = () => {
-    if (pendingLoadAction === 'NEW_GAME') {
+  const handleFinishLoading = () => {    if (pendingLoadAction === 'NEW_GAME') {
       const initialWorld = generateInitialWorld();
       gameStateRef.current = { ...INITIAL_STATE, ...initialWorld };
       lastPlayerChunkRef.current = null;
@@ -454,7 +450,7 @@ const App: React.FC = () => {
           const harvesterResult = updateHarvesters(
             prev.harvesters, buildResult.newHarvesters, buildResult.buildings,
             prev.discoveredResources, reservedResourceIds, availableCraters, allCraters,
-            harvesterGrid, rocket, { x, y }, prev.exploredChunks, hasPower, dt, isCraterAt,
+            harvesterGrid, rocket, { x, y }, prev.exploredChunks, prev.player.inventory, hasPower, dt, isCraterAt,
           );
 
           // Merge inventory additions

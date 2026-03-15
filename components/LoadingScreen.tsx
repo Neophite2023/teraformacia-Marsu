@@ -14,69 +14,63 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onLoadComplete }) => {
     let isCancelled = false;
 
     const runPreloadSequence = async () => {
+      // Failsafe: Ak sa čokoľvek zasekne, po 6 sekundách hru spustíme tak či tak
+      const failsafeTimer = setTimeout(() => {
+        if (!isCancelled) {
+          console.warn('Loading failsafe triggered');
+          onLoadComplete();
+        }
+      }, 6000);
+
       try {
-        // Krok 1: Inicializácia Audio Contextu
+        // Krok 1: Audio
         setStatus('Kalibrácia audio senzorov...');
-        sounds.resume(); 
-        await new Promise(r => setTimeout(r, 100));
-        setProgress(15);
-
-        // Krok 2: Prednačítanie fontu Orbitron
-        setStatus('Načítavam navigačné systémy (Fonty)...');
-        await document.fonts.ready;
+        try { sounds.resume(); } catch(e) { /* Audio context might not be resumed without user interaction */ }
+        await new Promise(r => setTimeout(r, 200));
         if (isCancelled) return;
-        setProgress(30);
+        setProgress(25);
 
-        // Krok 3: Explicitné prednačítanie assetov
+        // Krok 2: Assety (Fonty neriešime separátne, načítajú sa priebežne)
         setStatus('Skenujem povrch (Načítavam assety)...');
         const heavyAlienImg = new Image();
         const imgLoadPromise = new Promise<void>((resolve) => {
-          heavyAlienImg.onload = () => resolve();
-          heavyAlienImg.onerror = () => resolve();
-          heavyAlienImg.src = 'velky_alien.png';
+          const t = setTimeout(resolve, 2000); // Max 2s na aliena
+          heavyAlienImg.onload = () => { clearTimeout(t); resolve(); };
+          heavyAlienImg.onerror = () => { clearTimeout(t); resolve(); };
+          // V Electron/Vite produkcii je cesta v assets/
+          heavyAlienImg.src = 'assets/velky_alien.png';
         });
         await imgLoadPromise;
         if (isCancelled) return;
-        setProgress(50);
+        setProgress(60);
 
-        // Krok 4: "Shader Warm-up" - Eliminácia micro-stutteringu
-        // Vykreslíme kritické objekty na neviditeľný canvas, aby prehliadač skompiloval cesty a shadery
+        // Krok 3: Pre-rendering
         setStatus('Zahrievam grafické procesory (Pre-rendering)...');
         await new Promise<void>(resolve => {
             const offscreen = document.createElement('canvas');
-            offscreen.width = 100;
-            offscreen.height = 100;
+            offscreen.width = 100; offscreen.height = 100;
             const ctx = offscreen.getContext('2d');
             if (ctx) {
-                // Skúsime aspoň jeden render cyklus pre aliena a kráter (ako referenciu)
-                ctx.beginPath();
-                ctx.arc(50, 50, 40, 0, Math.PI * 2);
                 ctx.fillStyle = 'rgba(255,255,255,0.01)';
-                ctx.fill();
-                
-                // Vykonáme niekoľko komplexných operácií
-                ctx.globalAlpha = 0.5;
-                const grad = ctx.createRadialGradient(50, 50, 0, 50, 50, 50);
-                grad.addColorStop(0, 'white');
-                grad.addColorStop(1, 'black');
-                ctx.fillStyle = grad;
                 ctx.fillRect(0, 0, 100, 100);
             }
-            setTimeout(resolve, 300); // Dáme prehliadaču čas na spracovanie
+            setTimeout(resolve, 400);
         });
         if (isCancelled) return;
-        setProgress(85);
+        setProgress(90);
 
-        // Krok 5: Dokončenie
+        // Krok 4: Dokončenie
         setStatus('Teraformácia pripravená...');
         setProgress(100);
+        clearTimeout(failsafeTimer);
 
         setTimeout(() => {
           if (!isCancelled) onLoadComplete();
         }, 300);
 
       } catch (err) {
-        console.error('Core loading failed', err);
+        console.error('Loading sequence error', err);
+        clearTimeout(failsafeTimer);
         onLoadComplete();
       }
     };

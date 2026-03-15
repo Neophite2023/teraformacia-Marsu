@@ -126,6 +126,7 @@ export const updateHarvesters = (
   rocket: EnvFeature | undefined,
   playerPos: { x: number; y: number },
   exploredChunks: Record<string, boolean>,
+  playerInventory: Resources,
   hasPower: boolean,
   dt: number,
   isCraterAt: IsCraterAtFn,
@@ -360,12 +361,19 @@ export const updateHarvesters = (
         const moved = move(escapePos.x, escapePos.y, 10).reached;
         if (moved || newTimer > 2.5) { newState = 'IDLE'; newTimer = 0; }
       } else if (newState === 'IDLE') {
-        let minD = Infinity;
+        let minScore = Infinity;
         let c: typeof remainingResources[0] | null = null;
         remainingResources.forEach(r => {
           if (reservedResourceIds.has(r.id) && r.id !== h.targetResourceId) return;
-          const d = distance(r.x, r.y, h.x, h.y);
-          if (d < minD) { minD = d; c = r; }
+          const dist = distance(r.x, r.y, h.x, h.y);
+          
+          // Vážená vzdialenosť: Čím viac suroviny v sklade, tým je "vzdialenejšia"
+          // Formule: score = skutočná_vzdialenosť * (1 + (množstvo_v_sklade / 5))
+          // Príklad: Ak máme 0ks, score = dist * 1. Ak 10ks, score = dist * 3.
+          const currentCount = playerInventory[r.type] || 0;
+          const score = dist * (1 + (currentCount / 5));
+
+          if (score < minScore) { minScore = score; c = r; }
         });
         if (c) {
           targetId = c.id;
@@ -540,6 +548,36 @@ export const updateHarvesters = (
           newState = 'RETURNING';
         }
       } else if (newState === 'RETURNING') {
+        // --- Redirection Logic for TANKERs ---
+        // Check if current target pump is full
+        const isTargetFull = parent.storedWater !== undefined && 
+                           parent.waterCapacity !== undefined && 
+                           parent.storedWater >= parent.waterCapacity;
+
+        if (isTargetFull) {
+          // Scan for other WATER_PUMP buildings with space
+          const alternatives = updatedBuildings.filter(b => 
+            b.type === BuildingType.WATER_PUMP && 
+            b.progress >= 1 && 
+            b.health > 0.1 &&
+            (b.storedWater || 0) < (b.waterCapacity || 0)
+          );
+
+          if (alternatives.length > 0) {
+            // Pick the closest alternative pump
+            const closest = alternatives.reduce((best, curr) => {
+              const d = distance(curr.x, curr.y, newX, newY);
+              return d < best.dist ? { b: curr, dist: d } : best;
+            }, { b: alternatives[0], dist: Infinity }).b;
+            
+            // Redirect to this new pump
+            parent = closest;
+            assignedParentId = closest.id;
+            // Clear targetPos so it recalculates for the new parent
+            targetPos = undefined; 
+          }
+        }
+
         const pr = parent.rotation || 0;
         // Center of the red docking rectangle (Left tank: x=-20, y=0 relative to center)
         const dX = parent.x + Math.cos(pr + Math.PI) * 20;
@@ -581,19 +619,55 @@ export const updateHarvesters = (
         }
       } else if (newState === 'PUMPING_OUT') {
         if (hasPower) {
-          newTimer += dt;
-          if (newTimer > TANKER_PUMP_TIME) {
-            if (parent.waterCapacity) {
+          // --- Waiting/Redirection Logic for TANKERs ---
+          // Check if parent has room for at least some water
+          const space = (parent.waterCapacity || 0) - (parent.storedWater || 0);
+          if (space > 0) {
+            newTimer += dt;
+            if (newTimer > TANKER_PUMP_TIME) {
               const pIA = updatedBuildings.find(b => b.id === parent.id);
-              if (pIA) {
-                pIA.storedWater = (pIA.storedWater || 0) + Math.min(newInv?.amount || 0, (parent.waterCapacity || 0) - (parent.storedWater || 0));
+              if (pIA && newInv) {
+                const amountToGive = Math.min(newInv.amount || 0, space);
+                pIA.storedWater = (pIA.storedWater || 0) + amountToGive;
+                newInv.amount -= amountToGive;
+
+                if (newInv.amount <= 0) {
+                  newInv = null;
+                  newState = 'IDLE';
+                } else {
+                  // Tanker still has water, but building is now full
+                  newState = 'RETURNING';
+                  targetPos = undefined;
+                }
+              } else {
+                newState = 'IDLE';
               }
             }
-            newInv = null;
-            newState = 'IDLE';
+          } else {
+            // No space: check for alternatives
+            const alternatives = updatedBuildings.filter(b => 
+              b.type === BuildingType.WATER_PUMP && 
+              b.progress >= 1 && 
+              b.health > 0.1 &&
+              (b.storedWater || 0) < (b.waterCapacity || 0)
+            );
+
+            if (alternatives.length > 0) {
+              const closest = alternatives.reduce((best, curr) => {
+                const d = distance(curr.x, curr.y, newX, newY);
+                return d < best.dist ? { b: curr, dist: d } : best;
+              }, { b: alternatives[0], dist: Infinity }).b;
+
+              parent = closest;
+              assignedParentId = closest.id;
+              newState = 'RETURNING';
+              targetPos = undefined;
+            } else {
+              // No alternatives: stay parked and wait
+              newTimer = 0;
+            }
           }
-        }
-      } else if (newState === 'WAITING_FOR_DOCK') {
+        }      } else if (newState === 'WAITING_FOR_DOCK') {
         // Hold at a staging position near the parent building
         const pr = parent.rotation || 0;
         const hashId = h.id.split('-').reduce((acc, char) => acc + char.charCodeAt(0), 0);

@@ -97,9 +97,12 @@ const UIOverlay: React.FC<UIOverlayProps> = ({ state, onSelectBuilding, onSave, 
 
   const canAffordSynthesis = useMemo(() => {
     const inv = state.player.inventory;
-    return (inv[ResourceType.SILICON] || 0) >= 1 &&
-      (inv[ResourceType.MAGNESIUM] || 0) >= 1 &&
-      (inv[ResourceType.TITANIUM] || 0) >= 1;
+    const cands = [
+      inv[ResourceType.SILICON] || 0,
+      inv[ResourceType.MAGNESIUM] || 0,
+      inv[ResourceType.TITANIUM] || 0,
+    ].sort((a, b) => b - a);
+    return cands[0] >= 1 && cands[1] >= 1;
   }, [state.player.inventory]);
 
   // Pre-computed data pre build menu – zabráni opakovanému volaniu getUnlockedBuildings
@@ -297,27 +300,36 @@ const UIOverlay: React.FC<UIOverlayProps> = ({ state, onSelectBuilding, onSave, 
 
             <div className="space-y-3 mb-4">
               <div className="bg-slate-900/60 p-3 rounded-xl border border-white/5 space-y-2">
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Recept (Vstup):</p>
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Aktuálny recept (Dve najväčšie zásoby):</p>
                 <div className="flex gap-2 justify-between">
-                  {/* ... rest of synthesizer content using renderBuildingData where needed ... */}
-                  <div className="flex flex-col items-center gap-1">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center border ${state.player.inventory[ResourceType.SILICON] >= 1 ? 'border-blue-500/40 bg-blue-500/10' : 'border-red-500/20 bg-red-500/10'}`}>
-                      <span className="text-[10px] text-blue-300">Si</span>
-                    </div>
-                    <span className="text-[9px] text-slate-500">1x</span>
-                  </div>
-                  <div className="flex flex-col items-center gap-1">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center border ${state.player.inventory[ResourceType.MAGNESIUM] >= 1 ? 'border-amber-500/40 bg-amber-500/10' : 'border-red-500/20 bg-red-500/10'}`}>
-                      <span className="text-[10px] text-amber-300">Mg</span>
-                    </div>
-                    <span className="text-[9px] text-slate-500">1x</span>
-                  </div>
-                  <div className="flex flex-col items-center gap-1">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center border ${state.player.inventory[ResourceType.TITANIUM] >= 1 ? 'border-slate-300/40 bg-slate-300/10' : 'border-red-500/20 bg-red-500/10'}`}>
-                      <span className="text-[10px] text-slate-200">Ti</span>
-                    </div>
-                    <span className="text-[9px] text-slate-500">1x</span>
-                  </div>
+                  {(() => {
+                    const inv = state.player.inventory;
+                    const cands = [
+                      { type: ResourceType.SILICON, label: 'Si', color: 'blue', count: inv[ResourceType.SILICON] || 0 },
+                      { type: ResourceType.MAGNESIUM, label: 'Mg', color: 'amber', count: inv[ResourceType.MAGNESIUM] || 0 },
+                      { type: ResourceType.TITANIUM, label: 'Ti', color: 'slate', count: inv[ResourceType.TITANIUM] || 0 },
+                    ].sort((a, b) => b.count - a.count);
+
+                    const selectedTypes = [cands[0].type, cands[1].type];
+
+                    return [
+                      { type: ResourceType.SILICON, label: 'Si', color: 'blue', text: 'text-blue-300' },
+                      { type: ResourceType.MAGNESIUM, label: 'Mg', color: 'amber', text: 'text-amber-300' },
+                      { type: ResourceType.TITANIUM, label: 'Ti', color: 'slate', text: 'text-slate-200' },
+                    ].map(res => {
+                      const isSelected = selectedTypes.includes(res.type) && inv[res.type] >= 1;
+                      const hasSome = inv[res.type] >= 1;
+                      
+                      return (
+                        <div key={res.type} className={`flex flex-col items-center gap-1 transition-opacity duration-300 ${isSelected ? 'opacity-100' : 'opacity-30'}`}>
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center border ${isSelected ? `border-${res.color}-500/40 bg-${res.color}-500/20` : 'border-white/5 bg-white/5'}`}>
+                            <span className={`text-[10px] ${isSelected ? res.text : 'text-slate-500'}`}>{res.label}</span>
+                          </div>
+                          <span className="text-[9px] text-slate-500">{isSelected ? '1x' : '0x'}</span>
+                        </div>
+                      );
+                    });
+                  })()}
                   <div className="flex items-center text-slate-600 font-bold mx-1">→</div>
                   <div className="flex flex-col items-center gap-1">
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center border border-green-500/40 bg-green-500/10">

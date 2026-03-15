@@ -3,5 +3,5 @@
   "description": "Pokročilá hra o prežití a terraformovaní, kde premieňate pustú planétu na bujný raj pomocou technológií a strategického riadenia zdrojov.",
   "requestFramePermissions": [],
   "applicationId": "com.mars.terraforming.protocol",
-  "version": "1.0.0"
+  "version": "1.0.2"
 }

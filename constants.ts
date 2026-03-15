@@ -75,11 +75,23 @@ export const UPGRADE_COSTS: Partial<Record<BuildingType, Record<number, Partial<
   [BuildingType.SOLAR_PANEL]: {
     2: { [ResourceType.IRON]: 5, [ResourceType.SILICON]: 3 },
   },
+  [BuildingType.HEATER]: {
+    2: { [ResourceType.IRON]: 10, [ResourceType.TITANIUM]: 5, [ResourceType.SILICON]: 5 },
+  },
+  [BuildingType.DRILL]: {
+    2: { [ResourceType.IRON]: 12, [ResourceType.TITANIUM]: 8, [ResourceType.SILICON]: 4 },
+  },
 };
 
 export const UPGRADE_STATS: Partial<Record<BuildingType, Record<number, any>>> = {
   [BuildingType.SOLAR_PANEL]: {
     2: { power: 25 },
+  },
+  [BuildingType.HEATER]: {
+    2: { heat: 0.25, heatCap: 50, powerReq: 40 },
+  },
+  [BuildingType.DRILL]: {
+    2: { pressure: 0.15, pressureCap: 25, powerReq: 40 },
   },
 };
 
@@ -152,7 +164,7 @@ export const MISSIONS = [
     title: 'Prvý Kontakt',
     description: 'Zahriali sme sa, no radary niečo zachytili... Podivne malé tvory s ich nebezpečne vyzerajúcimi čeľusťami, ktoré môžu byť hrozbou pre našu malú základňu.',
     goal: 'Vybuduj obrannú Laserovú Vežu! Ale uisti sa, že máš dosť energie ešte predtým ako ju postavíš, aby ti mohla začať ihneď fungovať. Zlikviduj hrozbu piatich votrelcov',
-    successMessage: 'Uf, to bolo tesné. Hrozba je zažehnaná a okolie je nateraz čisté. Dobrá muška!',
+    successMessage: 'Tak to bolo tesné. Hrozba je zažehnaná a okolie je nateraz čisté. Dobrá muška!',
     check: (state: any) => state.buildings.some((b: any) => b.type === BuildingType.LASER_TOWER && b.progress >= 1) && state.enemiesKilled >= 5
   },
   {
@@ -170,7 +182,7 @@ export const MISSIONS = [
     title: 'Protokol Automatizácie',
     description: 'Prežili sme úvodnú fázu rastu našej budúcej kolónie! Teraz potrebujeme zautomatizovať zber surovín, aby sme sa mohli zamerať na ďalšie úlohy.',
     goal: 'Postav Rafinériu. Bude treba odhadom 20 kilowattov energie',
-    successMessage: 'Rafinéria stojí a začína sa štartovať jej robotická linka! Teraz môžeme spracovávať rudu automaticky. Vitaj v Ére industrializácie našej kolónie!',
+    successMessage: 'Rafinéria stojí a začína sa štartovať jej robotická linka! Teraz môžeme spracovávať suroviny automaticky. Vitaj v Ére industrializácie našej kolónie!',
     check: (state: any) => state.buildings.some((b: any) => b.type === BuildingType.REFINERY && b.progress >= 1)
   },
   {
@@ -210,7 +222,7 @@ export const MISSIONS = [
   {
     id: 'm11',
     title: 'Bod Topenia',
-    description: 'Tlak a teplota už prekročili bod mrazu, čo znamená, že ľad sa začína topiť. Musíme lokalizovať zdroj kvapalnej vody. Použi rover a nájdi zatopený kráter.',
+    description: 'Tlak a teplota už prekročili bod mrazu, čo znamená, že ľad v kráteroch pri póloch planéty sa začína topiť. Musíme lokalizovať zdroj kvapalnej vody. Použi rover a nájdi zatopený kráter.',
     goal: 'Preskúmaj mapu a objav Kráter so zásobami vody',
     successMessage: 'Našli sme ju! Kvapalná voda. Skutočné marťanské jazero. To je pohľad, na ktorý sme čakali.',
     check: (state: any) => state.envFeatures.some((f: any) => f.type === 'crater' && f.hasIce && (f.meltProgress || 0) > 0.1 && state.exploredChunks[`${Math.floor(f.x / FOG_GRID_SIZE)}_${Math.floor(f.y / FOG_GRID_SIZE)}`])
@@ -218,7 +230,7 @@ export const MISSIONS = [
   {
     id: 'm12',
     title: 'Vodná Logistika',
-    description: 'Zdroj vody je potvrdený. Teraz musíme vybudovať infraštruktúru na jej ťažbu. Vodné Čerpadlo je energeticky náročné zariadenie (20 kW), preto sa uisti, že naša sieť zvládne túto záťaž.',
+    description: 'Zdroj vody je potvrdený. Teraz musíme vybudovať infraštruktúru na jej ťažbu. Vodné Čerpadlo je energeticky náročné zariadenie (20 kW), preto sa uisti, že naša elektrická sieť zvládne túto záťaž.',
     goal: 'Postav Vodné Čerpadlo pri kráteri, kde sme našli ložiská ľadu',
     successMessage: 'Čerpadlo je online a voda prúdi potrubím. Počuješ ten zvuk? To je zvuk života, ktorý sa vracia na túto planétu.',
     check: (state: any) => state.buildings.some((b: any) => b.type === BuildingType.WATER_PUMP && b.progress >= 1)
